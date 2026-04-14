@@ -6,7 +6,7 @@ STORY_WIDTH = 1080
 STORY_HEIGHT = 1920
 BACKGROUND_COLOR = "#000000"
 TITLE_COLOR = "#FFFFFF"
-META_COLOR = "#FFFFFF"
+META_COLOR = "#A0A0A0" 
 
 # Memory optimization: Cache loaded fonts
 FONT_CACHE = {}
@@ -36,6 +36,7 @@ def draw_centered_spaced_text(draw, text, y_pos, font, spacing=10, color="#FFFFF
     words = text.upper().split()
     lines = []
     
+    # Wrap logic: Split into two lines if title is long
     if wrap and len(words) > 3:
         mid = len(words) // 2
         lines.append(" ".join(words[:mid]))
@@ -48,18 +49,19 @@ def draw_centered_spaced_text(draw, text, y_pos, font, spacing=10, color="#FFFFF
         spaced_text = " ".join(list(line)) if spacing > 0 else line
         # anchor="mt" ensures horizontal center is at 540px
         draw.text((STORY_WIDTH / 2, current_y), spaced_text, fill=color, font=font, anchor="mt")
-        current_y += font.size + 35 
+        current_y += font.size + 45 # Increased leading for better legibility
 
     return current_y
 
 def generate_instagram_story(movie_title, year, director, colors, output_path):
-    """Generates 9:16 JPG with adjusted vertical padding."""
+    """Generates 9:16 JPG with much larger, iPhone-friendly text."""
     try:
         story = Image.new("RGB", (STORY_WIDTH, STORY_HEIGHT), BACKGROUND_COLOR)
         draw = ImageDraw.Draw(story)
         
-        title_font = get_cinematic_font(70) 
-        meta_font = get_cinematic_font(32)   
+        # BUMPED UP FONT SIZES
+        title_font = get_cinematic_font(100) # Was 70
+        meta_font = get_cinematic_font(45)   # Was 32
         barcode_y_end = 1500 
         
         if colors:
@@ -67,18 +69,16 @@ def generate_instagram_story(movie_title, year, director, colors, output_path):
             for i, color in enumerate(colors):
                 draw.rectangle([i*bar_width, 0, (i+1)*bar_width, barcode_y_end], fill=color)
         
-        # PULLING IT UP: 
-        # Moved title_y from 1620 down to 1580 to tuck it closer to the barcode
-        # and further from the bottom edge.
-        title_y = barcode_y_end + 80
+        # START POSITION: Pushed slightly higher to accommodate larger text block
+        title_y = barcode_y_end + 65
         
         # Draw Title
-        new_y = draw_centered_spaced_text(draw, movie_title, title_y, title_font, spacing=8, color=TITLE_COLOR, wrap=True)
+        new_y = draw_centered_spaced_text(draw, movie_title, title_y, title_font, spacing=10, color=TITLE_COLOR, wrap=True)
         
-        # Draw Meta (Director info)
-        meta_y = new_y + 40
+        # Draw Meta (Director info) - Tighter gap to Title
+        meta_y = new_y + 35
         meta_text = f"DIRECTED BY {director} • {year}"
-        draw_centered_spaced_text(draw, meta_text, meta_y, meta_font, spacing=2, color=META_COLOR)
+        draw_centered_spaced_text(draw, meta_text, meta_y, meta_font, spacing=3, color=META_COLOR)
 
         story.save(output_path, "JPEG", quality=95)
         return True
