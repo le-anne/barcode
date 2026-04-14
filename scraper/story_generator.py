@@ -9,8 +9,7 @@ TITLE_COLOR = "#FFFFFF"
 META_COLOR = "#A0A0A0" 
 
 def get_cinematic_font(size=80):
-    # This logic forces the server to find your uploaded .ttf file
-    # It looks in the root folder, even though this script is in /scraper
+    # This ensures we find cinematic_font.ttf regardless of where the script runs
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     local_ttf = os.path.join(base_dir, "cinematic_font.ttf")
     
@@ -27,24 +26,22 @@ def get_cinematic_font(size=80):
             except:
                 continue
     
-    # Linux system backups for Streamlit Cloud (also resizable)
+    # Linux system backups for Streamlit Cloud
     linux_fonts = [
         "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
-        "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSerif.ttf"
+        "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf"
     ]
     for path in linux_fonts:
         if os.path.exists(path):
             return ImageFont.truetype(path, size)
     
-    # Absolute fallback (This is the tiny 10px one—hopefully we never hit this)
     return ImageFont.load_default()
 
-def draw_centered_spaced_text(draw, text, y_pos, font, spacing=12, color="#FFFFFF", wrap=False):
+def draw_centered_spaced_text(draw, text, y_pos, font, spacing=10, color="#FFFFFF", wrap=False):
     words = text.upper().split()
     lines = []
     
-    # Simple wrap logic for long titles
+    # Wrap logic for longer titles
     if wrap and len(words) > 3:
         mid = len(words) // 2
         lines.append(" ".join(words[:mid]))
@@ -54,11 +51,11 @@ def draw_centered_spaced_text(draw, text, y_pos, font, spacing=12, color="#FFFFF
 
     current_y = y_pos
     for line in lines:
-        # Add spacing between letters for cinematic effect
+        # Add spacing between letters for that cinematic look
         spaced_text = " ".join(list(line))
         draw.text((STORY_WIDTH / 2, current_y), spaced_text, fill=color, font=font, anchor="mt")
-        # Move down for the next line
-        current_y += (font.size if hasattr(font, 'size') else 20) + 40 
+        # Line spacing based on font size
+        current_y += (font.size if hasattr(font, 'size') else 40) + 30 
     return current_y
 
 def generate_instagram_story(movie_title, year, director, colors, output_path):
@@ -66,10 +63,10 @@ def generate_instagram_story(movie_title, year, director, colors, output_path):
         story = Image.new("RGB", (STORY_WIDTH, STORY_HEIGHT), BACKGROUND_COLOR)
         draw = ImageDraw.Draw(story)
         
-        # MASSIVE SIZES
-        title_font = get_cinematic_font(160) 
-        meta_font = get_cinematic_font(70)   
-        barcode_y_end = 1450 # Adjusted slightly to give text more room
+        # ADJUSTED SIZES (Goldilocks Zone)
+        title_font = get_cinematic_font(110) 
+        meta_font = get_cinematic_font(45)   
+        barcode_y_end = 1450 
         
         # Draw Barcode
         if colors:
@@ -82,9 +79,9 @@ def generate_instagram_story(movie_title, year, director, colors, output_path):
         new_y = draw_centered_spaced_text(draw, movie_title, title_y, title_font, wrap=True)
         
         # Draw Metadata
-        meta_y = new_y + 20
+        meta_y = new_y + 10
         meta_text = f"DIRECTED BY {director} • {year}"
-        draw_centered_spaced_text(draw, meta_text, meta_y, meta_font, color=META_COLOR)
+        draw_centered_spaced_text(draw, meta_text, meta_y, meta_font, color=META_COLOR, spacing=4)
 
         story.save(output_path, "JPEG", quality=95)
         return True
@@ -93,7 +90,7 @@ def generate_instagram_story(movie_title, year, director, colors, output_path):
         return False
 
 def generate_master_graphic(movie_title, year, director, colors, output_path):
-    # Placeholder to prevent app.py import errors
+    # Placeholder to keep app.py functional
     try:
         img = Image.new("RGB", (2400, 1200), BACKGROUND_COLOR)
         img.save(output_path, "JPEG")
