@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import scraper.scraper as scraper
 
 # 1. Page Config - Wide layout allows us to use CSS to center specific content blocks
 st.set_page_config(page_title="Movie Barcode Scraper", layout="wide")
@@ -70,7 +71,7 @@ with c_meta2:
 if st.button("Start Scraper", use_container_width=True):
     if movie_name:
         with st.spinner("Analyzing cinematic data..."):
-            scraped_data = search_filmgrab(movie_name)
+            scraped_data = scraper.search_filmgrab(movie_name)
             if scraped_data:
                 final_year = ov_year if ov_year else scraped_data['year']
                 final_dir = ov_director if ov_director else scraped_data['director']
